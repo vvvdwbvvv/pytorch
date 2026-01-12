@@ -37,19 +37,19 @@ from contextlib import _GeneratorContextManager, contextmanager
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import (
+    TYPE_CHECKING,
     Any,
-    cast,
     Generic,
     NamedTuple,
     NoReturn,
     Optional,
-    TYPE_CHECKING,
     TypeAlias,
     TypeGuard,
     TypeVar,
     Union,
+    cast,
 )
-from typing_extensions import deprecated, ParamSpec
+from typing_extensions import ParamSpec, deprecated
 
 import torch
 import torch.fx
@@ -60,16 +60,16 @@ import torch.utils._pytree as pytree
 from torch import SymBool, SymFloat, SymInt
 from torch._C._functorch import get_unwrapped, is_batchedtensor
 from torch._guards import ShapeGuard, SLoc, Source, TracingContext
-from torch._logging import dtrace_structured, LazyString, structured, trace_structured
+from torch._logging import LazyString, dtrace_structured, structured, trace_structured
 from torch._subclasses.meta_utils import is_sparse_any
 from torch._utils_internal import signpost_event
 from torch.fx.experimental import _config as config
 from torch.fx.experimental.recording import (
     FakeTensorMeta,
+    ShapeEnvEvent,
     record_shapeenv_event,
     replay_shape_env_events,
     shape_env_check_state_equal,
-    ShapeEnvEvent,
 )
 from torch.fx.experimental.sym_node import SymNode, SymTypes
 from torch.types import py_sym_types
@@ -92,12 +92,12 @@ from torch.utils._sympy.numbers import int_oo
 from torch.utils._sympy.printers import CppPrinter, PythonPrinter
 from torch.utils._sympy.singleton_int import SingletonInt
 from torch.utils._sympy.solve import try_solve
-from torch.utils._sympy.symbol import make_symbol, symbol_is_type, SymT
+from torch.utils._sympy.symbol import SymT, make_symbol, symbol_is_type
 from torch.utils._sympy.value_ranges import (
-    bound_sympy,
     SymPyValueRangeAnalysis,
     ValueRangeError,
     ValueRanges,
+    bound_sympy,
 )
 from torch.utils._traceback import CapturedTraceback, format_frame
 
@@ -3554,7 +3554,10 @@ class DimConstraints:
                     try:
                         rhs_value = sympy.sympify(right)
                         results[left]["ineq"] = (op, rhs_value)
-                    except (TypeError, ValueError): # rhs source is not linked to Dim name
+                    except (
+                        TypeError,
+                        ValueError
+                    ):  # rhs source is not linked to Dim name
                         pass
 
         # order forced specializations based on name
